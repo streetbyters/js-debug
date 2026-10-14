@@ -422,3 +422,78 @@ test('targeted empty cleanup preserves other empty sessions', () => {
   Debug.startRecording('replacement-2')
   assert.deepEqual(Debug.listRecordedLogs('keep'), [])
 })
+
+test('native timestamps preserve offsets, date rollover and DST transitions', () => {
+  const cwd = fileURLToPath(new URL('..', import.meta.url)),
+    fixtures = [
+      ['UTC', '2026-01-15T23:30:00.123Z', '2026-01-15T23:30:00.123+00:00'],
+      [
+        'Europe/Istanbul',
+        '2026-01-15T23:30:00.123Z',
+        '2026-01-16T02:30:00.123+03:00'
+      ],
+      [
+        'Asia/Kathmandu',
+        '2026-01-15T23:30:00.123Z',
+        '2026-01-16T05:15:00.123+05:45'
+      ],
+      [
+        'America/New_York',
+        '2026-01-15T01:30:00.123Z',
+        '2026-01-14T20:30:00.123-05:00'
+      ],
+      [
+        'America/New_York',
+        '2026-03-08T06:59:59.123Z',
+        '2026-03-08T01:59:59.123-05:00'
+      ],
+      [
+        'America/New_York',
+        '2026-03-08T07:00:00.123Z',
+        '2026-03-08T03:00:00.123-04:00'
+      ],
+      [
+        'America/New_York',
+        '2026-11-01T05:59:59.123Z',
+        '2026-11-01T01:59:59.123-04:00'
+      ],
+      [
+        'America/New_York',
+        '2026-11-01T06:00:00.123Z',
+        '2026-11-01T01:00:00.123-05:00'
+      ]
+    ]
+
+  for (const [zone, instant, expectedLocal] of fixtures) {
+    const script = String.raw`
+      import { mock } from 'node:test'
+      import { Debug, SetUTC } from './index.js'
+      mock.timers.enable({ apis: ['Date'], now: Date.parse(${JSON.stringify(instant)}) })
+      console.log = (format) => process.stdout.write(format.split(' ')[0].slice(2) + '\n')
+      SetUTC(false)
+      Debug.allowedInfo('local')
+      SetUTC(true)
+      Debug.allowedInfo('utc')
+      SetUTC(false)
+      Debug.allowedInfo('local-again')
+    `,
+      child = spawnSync(
+        process.execPath,
+        ['--input-type=module', '-e', script],
+        {
+          cwd,
+          env: { ...process.env, TZ: zone },
+          timeout: 3000,
+          encoding: 'utf8'
+        }
+      )
+
+    assert.equal(child.error, undefined)
+    assert.equal(child.status, 0, child.stderr)
+    assert.deepEqual(
+      child.stdout.trim().split('\n'),
+      [expectedLocal, instant.replace('Z', '+00:00'), expectedLocal],
+      zone
+    )
+  }
+})

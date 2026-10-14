@@ -1,5 +1,3 @@
-import moment from 'moment'
-
 const MAX_ARGUMENTS = 20,
   MAX_TEXT_LENGTH = 1000,
   MAX_RECORDS = 10,
@@ -278,6 +276,16 @@ function _safeArguments(args) {
   return safe
 }
 
+function _timestamp() {
+  const now = new Date(),
+    offset = _utc ? 0 : -now.getTimezoneOffset(),
+    stamp = new Date(now.getTime() + offset * 60_000).toISOString(),
+    hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0'),
+    minutes = String(Math.abs(offset) % 60).padStart(2, '0')
+
+  return `${stamp.slice(0, -1)}${offset < 0 ? '-' : '+'}${hours}:${minutes}`
+}
+
 function _write(level, method, color, args) {
   const safe = _safeArguments(args)
 
@@ -294,7 +302,7 @@ function _write(level, method, color, args) {
 
     // eslint-disable-next-line no-console
     console[method](
-      `%c${(_utc ? moment.utc() : moment()).toISOString(true)} [${_eventCount}] %c[${level}]:`,
+      `%c${_timestamp()} [${_eventCount}] %c[${level}]:`,
       `color: ${color}`,
       `color: ${color}; font-weight: bold`,
       ...safe
