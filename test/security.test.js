@@ -126,11 +126,11 @@ test('arguments, text, record events and session counts are bounded', () => {
   for (let i = 0; i < 150; i++) Debug.allowedInfo(i)
   assert.equal(Debug.listRecordedLogs().length, 100)
   assert.equal(Debug.listRecordedLogs().at(-1).at(-1), 149)
-  Debug.stopRecording(true)
+  Debug.stopRecording()
   for (let i = 0; i < 15; i++) {
     Debug.startRecording(`stage-${i}`)
     Debug.allowedInfo(i)
-    Debug.stopRecording(true)
+    Debug.stopRecording()
   }
   assert.deepEqual(Debug.listRecordedLogs('initial'), [])
   assert.deepEqual(Debug.listRecordedLogs('stage-4'), [])
@@ -326,4 +326,99 @@ test('timestamped levels use the clock at each call and respect UTC/local mode',
         `%c${new Date(base + (timestamped.length + 2) * 1000).toISOString().replace('Z', '+00:00')}`
       )
   )
+})
+
+test('stopRecording stops immediately, preserves logs and is idempotent', () => {
+  Debug.stopRecording()
+  assert.equal(Debug.getOldRecordName(), null)
+  Debug.startRecording('first')
+  Debug.allowedInfo('saved')
+  Debug.startRecording('nested')
+  Debug.stopRecording()
+
+  assert.equal(Debug.getRecordName(), null)
+  assert.equal(Debug.getOldRecordName(), 'first,nested')
+  Debug.allowedInfo('outside-recording')
+  assert.equal(Debug.listRecordedLogs('first,nested').length, 1)
+  Debug.stopRecording()
+  assert.equal(Debug.getOldRecordName(), 'first,nested')
+  Debug.startRecording('second')
+  Debug.allowedInfo('second-message')
+  Debug.stopRecording()
+  assert.equal(Debug.getOldRecordName(), 'second')
+  assert.equal(Debug.listRecordedLogs('second').length, 1)
+  assert.equal(Debug.listRecordedLogs('first').length, 1)
+})
+
+test('legacy force arguments no longer prevent recording from stopping', () => {
+  for (const force of [false, true]) {
+    Debug.startRecording('legacy')
+    Debug.stopRecording(force)
+    assert.equal(Debug.getRecordName(), null)
+    assert.equal(Debug.getOldRecordName(), 'legacy')
+  }
+})
+
+test('clearing empties preserves populated records and the active stage', () => {
+  Debug.startRecording('saved')
+  Debug.allowedInfo('message')
+  Debug.clearEmptyRecordedLogs('saved')
+  Debug.clearEmptyRecordedLogs()
+  assert.equal(Debug.listRecordedLogs('saved').length, 1)
+  assert.equal(Debug.getRecordName(), 'saved')
+  Debug.stopRecording()
+  Debug.startRecording('active-empty')
+  Debug.clearEmptyRecordedLogs('active-empty')
+  assert.equal(Debug.getRecordName(), 'active-empty')
+  Debug.allowedInfo('after-clear')
+  assert.equal(Debug.listRecordedLogs('active-empty')[0][1], 'after-clear')
+  Debug.stopRecording()
+  Debug.clearEmptyRecordedLogs('missing')
+  assert.equal(Debug.getOldRecordName(), 'active-empty')
+  assert.equal(Debug.listRecordedLogs('saved').length, 1)
+})
+
+test('empty-record cleanup frees capacity without evicting populated history', () => {
+  // An empty array getter cannot distinguish absent records from empty ones.
+  // Verify deletion through the observable session-capacity eviction behavior.
+  for (const stage of ['empty-0', null, undefined]) {
+    Debug.cleanup()
+    Debug.startRecording('keep')
+    Debug.allowedInfo('message')
+    Debug.stopRecording()
+
+    for (let i = 0; i < 9; i++) {
+      Debug.startRecording(`empty-${i}`)
+      Debug.stopRecording()
+    }
+
+    Debug.clearEmptyRecordedLogs(stage)
+
+    const replacements = stage == null ? 9 : 1
+
+    for (let i = 0; i < replacements; i++) {
+      Debug.startRecording(`replacement-${i}`)
+      Debug.stopRecording()
+    }
+
+    assert.equal(Debug.listRecordedLogs('keep').length, 1)
+  }
+})
+
+test('targeted empty cleanup preserves other empty sessions', () => {
+  Debug.startRecording('keep')
+  Debug.allowedInfo('message')
+  Debug.stopRecording()
+
+  for (let i = 0; i < 9; i++) {
+    Debug.startRecording(`empty-${i}`)
+    Debug.stopRecording()
+  }
+
+  Debug.clearEmptyRecordedLogs('empty-0')
+  Debug.startRecording('replacement-1')
+  Debug.stopRecording()
+  assert.equal(Debug.listRecordedLogs('keep').length, 1)
+  Debug.startRecording('replacement-2')
+  assert.deepEqual(Debug.listRecordedLogs('keep'), [])
 })

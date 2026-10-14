@@ -133,8 +133,8 @@ export class Debug {
     return _oldRecord
   }
 
-  static stopRecording(force = false) {
-    if (!force) return
+  static stopRecording() {
+    if (_record === null) return
 
     _oldRecord = _record
     _record = null
@@ -151,13 +151,10 @@ export class Debug {
   }
 
   static clearEmptyRecordedLogs(stage = null) {
-    if (!stage) {
-      _recordedLogs.delete(_record)
-      return
-    }
+    for (const [name, events] of _recordedLogs) {
+      if (stage != null && name !== stage) continue
 
-    if (stage === _record) {
-      _recordedLogs.delete(stage)
+      if (events.length === 0) _recordedLogs.delete(name)
     }
   }
 
