@@ -21,11 +21,11 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "lint": "oxlint --max-warnings 0 index.js",
-    "lint:fix": "oxlint --fix --max-warnings 0 index.js",
-    "format": "oxfmt --write index.js index.d.ts package.json .oxlintrc.json .oxfmtrc.json",
-    "test": "mocha",
-    "format:check": "oxfmt --check index.js index.d.ts package.json .oxlintrc.json .oxfmtrc.json"
+    "lint": "oxlint --max-warnings 0 index.js test/security.test.js",
+    "lint:fix": "oxlint --fix --max-warnings 0 index.js test/security.test.js",
+    "format": "oxfmt --write index.js index.d.ts package.json .oxlintrc.json .oxfmtrc.json test/security.test.js",
+    "test": "node --test",
+    "format:check": "oxfmt --check index.js index.d.ts package.json .oxlintrc.json .oxfmtrc.json test/security.test.js"
   },
   "dependencies": {
     "moment": "^2.30.1"

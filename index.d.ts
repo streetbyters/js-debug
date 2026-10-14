@@ -1,3 +1,5 @@
+export type SafeLogValue = string | number | boolean | null | undefined
+
 export declare function SetStoreTTL(ttl: number): void
 export declare function SetStored(value: boolean): void
 export declare function SetStoredStackSize(value: number): void
@@ -11,9 +13,9 @@ export declare class Debug {
   static getRecordName(): string | null
   static getOldRecordName(): string | null
   static stopRecording(force?: boolean): void
-  static listRecordedLogs(stage?: string): any[]
-  static clearRecordedLogs(stage?: string): void
-  static clearEmptyRecordedLogs(stage?: string): void
+  static listRecordedLogs(stage?: string | null): SafeLogValue[][]
+  static clearRecordedLogs(stage?: string | null): void
+  static clearEmptyRecordedLogs(stage?: string | null): void
   static info(...args: any[]): void
   static priotiriedInfo(...args: any[]): void
   static allowedInfo(...args: any[]): void
@@ -23,5 +25,6 @@ export declare class Debug {
   static allowedError(...args: any[]): void
   static debug(...args: any[]): void
   static log(...args: any[]): void
-  static listStack(): any[]
+  static dispose(): void
+  static listStack(): SafeLogValue[]
 }
