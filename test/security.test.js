@@ -527,3 +527,21 @@ test('native timestamps preserve offsets, date rollover and DST transitions', ()
     )
   }
 })
+
+test('reopened recordings are retained ahead of older sessions', () => {
+  for (let i = 0; i < 10; i++) {
+    Debug.startRecording(`stage-${i}`)
+    Debug.allowedInfo(i)
+    Debug.stopRecording()
+  }
+
+  Debug.startRecording('stage-0')
+  Debug.allowedInfo('reopened')
+  Debug.stopRecording()
+  Debug.startRecording('stage-10')
+  Debug.allowedInfo('new-session')
+
+  assert.equal(Debug.listRecordedLogs('stage-0')[0]?.[1], 'reopened')
+  assert.deepEqual(Debug.listRecordedLogs('stage-1'), [])
+  assert.equal(Debug.listRecordedLogs('stage-9')[0][1], 9)
+})

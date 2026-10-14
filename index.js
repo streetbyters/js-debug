@@ -116,6 +116,7 @@ export class Debug {
     const previous = _recordedLogs.get(_record) ?? []
 
     _record = name
+    _recordedLogs.delete(name)
     _recordedLogs.set(name, previous.slice())
 
     if (_recordedLogs.size > MAX_RECORDS) {
