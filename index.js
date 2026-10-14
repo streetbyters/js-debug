@@ -279,11 +279,18 @@ function _safeArguments(args) {
 function _timestamp() {
   const now = new Date(),
     offset = _utc ? 0 : -now.getTimezoneOffset(),
-    stamp = new Date(now.getTime() + offset * 60_000).toISOString(),
-    hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0'),
+    // Native ISO always has a three-digit fraction; remove its trailing zeros.
+    stamp = new Date(now.getTime() + offset * 60_000)
+      .toISOString()
+      .slice(0, -1)
+      .replace(/\.?0+$/, '')
+
+  if (offset === 0) return `${stamp}Z`
+
+  const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0'),
     minutes = String(Math.abs(offset) % 60).padStart(2, '0')
 
-  return `${stamp.slice(0, -1)}${offset < 0 ? '-' : '+'}${hours}:${minutes}`
+  return `${stamp}${offset < 0 ? '-' : '+'}${hours}:${minutes}`
 }
 
 function _write(level, method, color, args) {

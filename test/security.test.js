@@ -296,7 +296,7 @@ test('timestamped levels use the clock at each call and respect UTC/local mode',
     Debug[method]('message')
     assert.ok(
       output[i][1].startsWith(
-        `%c${new Date(base + (i + 1) * 1000).toISOString().replace('Z', '+00:00')}`
+        `%c${new Date(base + (i + 1) * 1000).toISOString().replace('.000Z', 'Z')}`
       )
     )
   }
@@ -312,7 +312,7 @@ test('timestamped levels use the clock at each call and respect UTC/local mode',
     minutes = String(Math.abs(offset) % 60).padStart(2, '0'),
     localStamp = new Date(local.getTime() + offset * 60000)
       .toISOString()
-      .replace('Z', `${sign}${hours}:${minutes}`)
+      .replace('.000Z', offset === 0 ? 'Z' : `${sign}${hours}:${minutes}`)
 
   assert.ok(output.at(-1)[1].startsWith(`%c${localStamp}`))
 
@@ -323,7 +323,7 @@ test('timestamped levels use the clock at each call and respect UTC/local mode',
     output
       .at(-1)[1]
       .startsWith(
-        `%c${new Date(base + (timestamped.length + 2) * 1000).toISOString().replace('Z', '+00:00')}`
+        `%c${new Date(base + (timestamped.length + 2) * 1000).toISOString().replace('.000Z', 'Z')}`
       )
   )
 })
@@ -426,7 +426,7 @@ test('targeted empty cleanup preserves other empty sessions', () => {
 test('native timestamps preserve offsets, date rollover and DST transitions', () => {
   const cwd = fileURLToPath(new URL('..', import.meta.url)),
     fixtures = [
-      ['UTC', '2026-01-15T23:30:00.123Z', '2026-01-15T23:30:00.123+00:00'],
+      ['UTC', '2026-01-15T23:30:00.123Z', '2026-01-15T23:30:00.123Z'],
       [
         'Europe/Istanbul',
         '2026-01-15T23:30:00.123Z',
@@ -461,10 +461,40 @@ test('native timestamps preserve offsets, date rollover and DST transitions', ()
         'America/New_York',
         '2026-11-01T06:00:00.123Z',
         '2026-11-01T01:00:00.123-05:00'
+      ],
+      [
+        'UTC',
+        '2026-01-15T12:00:00.000Z',
+        '2026-01-15T12:00:00Z',
+        '2026-01-15T12:00:00Z'
+      ],
+      [
+        'UTC',
+        '2026-01-15T12:00:00.100Z',
+        '2026-01-15T12:00:00.1Z',
+        '2026-01-15T12:00:00.1Z'
+      ],
+      [
+        'UTC',
+        '2026-01-15T12:00:00.120Z',
+        '2026-01-15T12:00:00.12Z',
+        '2026-01-15T12:00:00.12Z'
+      ],
+      ['UTC', '2026-01-15T12:00:00.001Z', '2026-01-15T12:00:00.001Z'],
+      [
+        'Europe/Istanbul',
+        '2026-01-15T12:00:00.010Z',
+        '2026-01-15T15:00:00.01+03:00',
+        '2026-01-15T12:00:00.01Z'
       ]
     ]
 
-  for (const [zone, instant, expectedLocal] of fixtures) {
+  for (const [
+    zone,
+    instant,
+    expectedLocal,
+    expectedUTC = instant
+  ] of fixtures) {
     const script = String.raw`
       import { mock } from 'node:test'
       import { Debug, SetUTC } from './index.js'
@@ -492,7 +522,7 @@ test('native timestamps preserve offsets, date rollover and DST transitions', ()
     assert.equal(child.status, 0, child.stderr)
     assert.deepEqual(
       child.stdout.trim().split('\n'),
-      [expectedLocal, instant.replace('Z', '+00:00'), expectedLocal],
+      [expectedLocal, expectedUTC, expectedLocal],
       zone
     )
   }
