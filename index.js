@@ -222,7 +222,7 @@ function _infoF(infos) {
       _eventCount +
       '] ' +
       '%c[INFO]: ',
-    ...['color: Green', 'color: Green; font-weight: bold', ...infos],
+    ...['color: Green', 'color: Green; font-weight: bold', ...infos]
   )
 }
 
@@ -246,7 +246,7 @@ function _errorF(errors) {
       _eventCount +
       '] ' +
       '%c[ERROR]:',
-    ...['color: Red', 'color: Red; font-weight: bold', ...errors],
+    ...['color: Red', 'color: Red; font-weight: bold', ...errors]
   )
 }
 
@@ -266,7 +266,7 @@ function _warnF(warns) {
       _eventCount +
       '] ' +
       '%c[WARN]:',
-    ...['color: #f59905', 'color: #f59905; font-weight: bold', ...warns],
+    ...['color: #f59905', 'color: #f59905; font-weight: bold', ...warns]
   )
 }
 
@@ -285,7 +285,7 @@ function _debugF(debugs) {
   // eslint-disable-next-line
   console.log(
     '%c' + _timeFunc.toISOString() + ' [' + _eventCount + '] ' + '%c[DEBUG]:',
-    ...['color: #999999', 'color: #999999; font-weight: bold', ...debugs],
+    ...['color: #999999', 'color: #999999; font-weight: bold', ...debugs]
   )
 }
 
@@ -303,7 +303,7 @@ function _pushRecord() {
 
   _recordedLogs.set(_record, [
     ...(_recordedLogs.get(_record) ?? []),
-    ...arguments,
+    ...arguments
   ])
 }
 
