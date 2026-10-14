@@ -170,12 +170,17 @@ export class Debug {
     }
   }
 
-  static priotiriedInfo() {
+  static prioritizedInfo() {
     if (checkENV(true)) {
-      _doTry('priotiriedInfo', () => {
+      _doTry('prioritizedInfo', () => {
         _write('INFO', 'log', 'Green', arguments)
       })
     }
+  }
+
+  /** @deprecated Use Debug.prioritizedInfo(). */
+  static priotiriedInfo() {
+    Debug.prioritizedInfo(...arguments)
   }
 
   static allowedInfo() {
@@ -232,7 +237,7 @@ export class Debug {
     return _logs.slice()
   }
 
-  static dispose() {
+  static cleanup() {
     SetStoreTTL(0)
     _logs.length = 0
     _recordedLogs.clear()

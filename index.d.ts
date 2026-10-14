@@ -17,6 +17,8 @@ export declare class Debug {
   static clearRecordedLogs(stage?: string | null): void
   static clearEmptyRecordedLogs(stage?: string | null): void
   static info(...args: any[]): void
+  static prioritizedInfo(...args: any[]): void
+  /** @deprecated Use Debug.prioritizedInfo(). */
   static priotiriedInfo(...args: any[]): void
   static allowedInfo(...args: any[]): void
   static warn(...args: any[]): void
@@ -25,6 +27,6 @@ export declare class Debug {
   static allowedError(...args: any[]): void
   static debug(...args: any[]): void
   static log(...args: any[]): void
-  static dispose(): void
+  static cleanup(): void
   static listStack(): SafeLogValue[]
 }

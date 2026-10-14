@@ -16,7 +16,7 @@ import {
 
 let output, original
 beforeEach(() => {
-  Debug.dispose()
+  Debug.cleanup()
   SetStoredStackSize(100)
   output = []
   original = { log: console.log, info: console.info, error: console.error }
@@ -25,7 +25,7 @@ beforeEach(() => {
   }
 })
 afterEach(() => {
-  Debug.dispose()
+  Debug.cleanup()
   Object.assign(console, original)
 })
 
@@ -37,6 +37,7 @@ const methods = [
   'allowedInfo',
   'allowedWarn',
   'allowedError',
+  'prioritizedInfo',
   'priotiriedInfo',
   'log'
 ]
@@ -223,7 +224,7 @@ test('TTL reset, disable and disposal release retained data', async () => {
   Debug.allowedInfo('survives-disabled-ttl')
   await new Promise((resolve) => setTimeout(resolve, 20))
   assert.deepEqual(Debug.listStack(), ['survives-disabled-ttl'])
-  Debug.dispose()
+  Debug.cleanup()
   assert.deepEqual(Debug.listStack(), [])
   assert.deepEqual(Debug.listRecordedLogs('test'), [])
   assert.equal(Debug.getRecordName(), null)
@@ -237,7 +238,7 @@ test('TTL reset, disable and disposal release retained data', async () => {
 
 test('TTL does not keep a Node process alive, including disposal', () => {
   const cwd = fileURLToPath(new URL('..', import.meta.url))
-  for (const cleanup of ['', 'Debug.dispose()']) {
+  for (const cleanup of ['', 'Debug.cleanup()']) {
     const child = spawnSync(
       process.execPath,
       [
@@ -258,4 +259,24 @@ test('configuration flags reject objects instead of retaining caller data', () =
       assert.throws(() => setter(value), TypeError)
     }
   }
+})
+
+test('deprecated priority alias preserves safe output and cleanup behavior', () => {
+  const { priotiriedInfo } = Debug
+
+  SetStored(true)
+  Debug.startRecording('alias')
+  Debug.prioritizedInfo({ token: 'fixture-secret' })
+  priotiriedInfo({ token: 'fixture-secret' })
+  assert.deepEqual(output[0].slice(4), ['[REDACTED]'])
+  assert.deepEqual(output[1].slice(4), ['[REDACTED]'])
+  assert.equal(Debug.listRecordedLogs().length, 2)
+  SetStoreTTL(60000)
+  Debug.cleanup()
+  assert.deepEqual(Debug.listStack(), [])
+  assert.deepEqual(Debug.listRecordedLogs('alias'), [])
+  assert.equal(Debug.getRecordName(), null)
+  SetAllow(true)
+  Debug.info('reusable')
+  assert.equal(output.at(-1).at(-1), 'reusable')
 })
