@@ -166,11 +166,9 @@ export class Debug {
   }
 
   static prioritizedInfo() {
-    if (checkENV(true)) {
-      _doTry('prioritizedInfo', () => {
-        _write('INFO', 'log', 'Green', arguments)
-      })
-    }
+    _doTry('prioritizedInfo', () => {
+      _write('INFO', 'log', 'Green', arguments)
+    })
   }
 
   /** @deprecated Use Debug.prioritizedInfo(). */
@@ -245,10 +243,8 @@ export class Debug {
   }
 }
 
-function checkENV(prioritised = false) {
-  if (prioritised || _priority) return true
-
-  return _allow
+function checkENV() {
+  return _priority || _allow
 }
 
 // Never inspect objects or invoke user-controlled serialization hooks.
