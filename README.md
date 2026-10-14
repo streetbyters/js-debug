@@ -2,6 +2,8 @@
 
 Small ESM logger for JavaScript and Node.js.
 
+✨ Zero runtime dependencies.
+
 ```js
 import { Debug, SetAllow } from '@streetbyters/js-debug'
 
