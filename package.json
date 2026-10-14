@@ -1,47 +1,46 @@
 {
   "name": "@streetbyters/js-debug",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Simple, practical Javascript|NodeJS Debug Logging",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
-    "format": "prettier --write \"**/*.{js,ts,md,json}\" --ignore-path .prettierignore",
-    "test": "mocha"
+  "keywords": [
+    "debug",
+    "javascript",
+    "logging",
+    "nodejs"
+  ],
+  "homepage": "https://github.com/streetbyters/js-debug#readme",
+  "bugs": {
+    "url": "https://github.com/streetbyters/js-debug/issues"
   },
+  "license": "MIT",
+  "author": "Streetbyters Community <https://github.com/streetbyters>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/streetbyters/js-debug.git"
   },
-  "keywords": [
-    "javascript",
-    "nodejs",
-    "debug",
-    "logging"
+  "files": [
+    "index.js",
+    "index.d.ts"
   ],
-  "author": "Streetbyters Community <https://github.com/streetbyters>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/streetbyters/js-debug/issues"
-  },
-  "homepage": "https://github.com/streetbyters/js-debug#readme",
-  "packageManager": "pnpm@10.28.0",
-  "dependencies": {
-    "moment": "^2.30.1"
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "lint": "oxlint --max-warnings 0 index.js test/security.test.js",
+    "lint:fix": "oxlint --fix --max-warnings 0 index.js test/security.test.js",
+    "format": "oxfmt --write index.js index.d.ts package.json .oxlintrc.json .oxfmtrc.json test/security.test.js",
+    "test": "node --test",
+    "format:check": "oxfmt --check index.js index.d.ts package.json .oxlintrc.json .oxfmtrc.json test/security.test.js"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "globals": "^16.5.0",
-    "prettier": "^3.7.4"
+    "oxfmt": "^0.64.0",
+    "oxlint": "^1.86.0"
   },
   "engines": {
     "node": ">= 20.19.5",
     "npm": ">= 9.6.7",
-    "yarn": ">= 1.22.19",
-    "pnpm": ">= 10.18.0"
-  }
+    "pnpm": ">= 10.18.0",
+    "yarn": ">= 1.22.19"
+  },
+  "packageManager": "pnpm@12.11.2"
 }

@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  "ignorePatterns": ["**/node_modules/", "dist/", "coverage/"],
+
+  "options": {
+    "maxWarnings": 0
+  },
+
+  "plugins": ["import", "eslint", "promise", "unicorn"],
+
+  "categories": {
+    "correctness": "error"
+    //     "style": "error"
+    // "pedantic": "warn",
+    //     "suspicious": "error",
+    //     "perf": "error",
+    //     "restriction": "error"
+  },
+
+  "rules": {
+    "promise/no-callback-in-promise": "off",
+    "no-invalid-fetch-options": "off",
+    "no-console": "error",
+    "no-debugger": "error",
+    "no-extra-boolean-cast": "off",
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  },
+
+  "env": {
+    "builtin": true,
+    "nodejs": true,
+    "browser": true
+  }
+}
