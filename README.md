@@ -37,4 +37,5 @@ name remains available as a deprecated alias.
 
 Development (Node >=20.19.5): `pnpm test`, `pnpm lint`, `pnpm format:check`.
 
+## LICENSE
 Licensed under [MIT](LICENSE).
