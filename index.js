@@ -6,7 +6,7 @@ const MAX_ARGUMENTS = 20,
   MAX_RECORD_EVENTS = 100
 
 let _eventCount = 0,
-  _timeFunc = moment(),
+  _utc = false,
   _allow = false,
   _debug = false,
   _priority = false,
@@ -69,8 +69,7 @@ export function SetStoredStackSize(stackSize) {
 export function SetUTC(utc) {
   if (typeof utc !== 'boolean') throw new TypeError('SetUTC must be boolean')
 
-  if (utc) _timeFunc = moment.utc()
-  else _timeFunc = moment()
+  _utc = utc
 }
 
 /**
@@ -298,7 +297,7 @@ function _write(level, method, color, args) {
 
     // eslint-disable-next-line no-console
     console[method](
-      `%c${_timeFunc.toISOString(true)} [${_eventCount}] %c[${level}]:`,
+      `%c${(_utc ? moment.utc() : moment()).toISOString(true)} [${_eventCount}] %c[${level}]:`,
       `color: ${color}`,
       `color: ${color}; font-weight: bold`,
       ...safe

@@ -18,6 +18,7 @@ let output, original
 beforeEach(() => {
   Debug.cleanup()
   SetStoredStackSize(100)
+  SetUTC(false)
   output = []
   original = { log: console.log, info: console.info, error: console.error }
   for (const method of Object.keys(original)) {
@@ -279,4 +280,50 @@ test('deprecated priority alias preserves safe output and cleanup behavior', () 
   SetAllow(true)
   Debug.info('reusable')
   assert.equal(output.at(-1).at(-1), 'reusable')
+})
+
+test('timestamped levels use the clock at each call and respect UTC/local mode', (t) => {
+  const base = Date.parse('2026-01-15T12:00:00.000Z'),
+    timestamped = methods.filter((method) => method !== 'log')
+
+  t.mock.timers.enable({ apis: ['Date'], now: base })
+  SetAllow(true)
+  SetDebug(true)
+  SetUTC(true)
+
+  for (const [i, method] of timestamped.entries()) {
+    t.mock.timers.tick(1000)
+    Debug[method]('message')
+    assert.ok(
+      output[i][1].startsWith(
+        `%c${new Date(base + (i + 1) * 1000).toISOString().replace('Z', '+00:00')}`
+      )
+    )
+  }
+
+  SetUTC(false)
+  t.mock.timers.tick(1000)
+  Debug.info('local')
+
+  const local = new Date(base + (timestamped.length + 1) * 1000),
+    offset = -local.getTimezoneOffset(),
+    sign = offset < 0 ? '-' : '+',
+    hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0'),
+    minutes = String(Math.abs(offset) % 60).padStart(2, '0'),
+    localStamp = new Date(local.getTime() + offset * 60000)
+      .toISOString()
+      .replace('Z', `${sign}${hours}:${minutes}`)
+
+  assert.ok(output.at(-1)[1].startsWith(`%c${localStamp}`))
+
+  SetUTC(true)
+  t.mock.timers.tick(1000)
+  Debug.info('utc-again')
+  assert.ok(
+    output
+      .at(-1)[1]
+      .startsWith(
+        `%c${new Date(base + (timestamped.length + 2) * 1000).toISOString().replace('Z', '+00:00')}`
+      )
+  )
 })
